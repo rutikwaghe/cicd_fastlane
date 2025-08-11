@@ -89,10 +89,30 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aab-release
-          path: android/app/build/outputs/bundle/release/*.aab
+          path:
+            android/app/build/outputs/bundle/release/*.aab
 
-      # 12. Deploy Over-The-Air update to Stallion
+            # 12. Bundle JS for OTA update
+      - name: Bundle JS for Stallion OTA
+        run: |
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output android/app/build/generated/assets/react/release/index.android.bundle \
+            --assets-dest android/app/build/generated/res/react/release
+
+      # 13. Install Stallion CLI
+      - name: Install Stallion CLI
+        run: npm install --global stallion-cli
+
+      # 14. Stallion OTA Deploy
       - name: Stallion OTA Deploy
         run: |
-          stallion login --api-key "${{ secrets.STALLION_API_KEY }}"
-          stallion release --platform android --app-id "${{ secrets.STALLION_APP_ID }}" --bundle-path android/app/build/outputs/apk/release/app-release.apk
+          stallion release \
+            --platform android \
+            --app-id "${{ secrets.STALLION_APP_ID }}" \
+            --bundle-path android/app/build/generated/assets/react/release/index.android.bundle \
+            --release-note "Automated release from GitHub Actions"
+        env:
+          STALLION_API_KEY: ${{ secrets.STALLION_API_KEY }}
