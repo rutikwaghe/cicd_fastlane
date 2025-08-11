@@ -53,18 +53,16 @@ jobs:
       #     echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
 
 
-      - name: 🔑 Decode and save keystore
+      - name: Decode keystore from base64
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/groceryapp_keystore.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/groceryapp_keystore.jks
 
-      - name: 📝 Configure Gradle Signing
+      - name: Inject signing info into gradle.properties
         run: |
-          cat <<EOF > android/gradle.properties
-          MYAPP_UPLOAD_STORE_FILE=groceryapp_keystore.jks
-          MYAPP_UPLOAD_KEY_ALIAS=$ANDROID_KEY_ALIAS
-          MYAPP_UPLOAD_STORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD
-          MYAPP_UPLOAD_KEY_PASSWORD=$ANDROID_KEY_PASSWORD
-          EOF
+          echo "MYAPP_UPLOAD_STORE_FILE=ipruatom.keystore" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> android/gradle.properties
 
 
       # 8. Build Android APK
