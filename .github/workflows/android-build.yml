@@ -41,7 +41,7 @@ jobs:
       # 6. Decode and save keystore
       - name: Decode and save keystore
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/my-release-key.jks
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/groceryapp_keystore.jks
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
