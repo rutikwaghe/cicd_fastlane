@@ -39,18 +39,33 @@ jobs:
         run: yarn install
 
       # 6. Decode and save keystore
-      - name: Decode and save keystore
+      # - name: Decode and save keystore
+      #   run: |
+      #     echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/groceryapp_keystore.jks
+      #   env:
+      #     ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      # # 7. Set Gradle signing properties
+      # - name: Set up Gradle signing properties
+      #   run: |
+      #     echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+      #     echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
+      #     echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+
+
+      - name: 🔑 Decode and save keystore
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/groceryapp_keystore.jks
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
-      # 7. Set Gradle signing properties
-      - name: Set up Gradle signing properties
+      - name: 📝 Configure Gradle Signing
         run: |
-          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
-          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+          cat <<EOF > android/gradle.properties
+          MYAPP_UPLOAD_STORE_FILE=groceryapp_keystore.jks
+          MYAPP_UPLOAD_KEY_ALIAS=$ANDROID_KEY_ALIAS
+          MYAPP_UPLOAD_STORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD
+          MYAPP_UPLOAD_KEY_PASSWORD=$ANDROID_KEY_PASSWORD
+          EOF
+
 
       # 8. Build Android APK
       - name: Build Android APK
