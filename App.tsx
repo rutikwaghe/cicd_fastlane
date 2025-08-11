@@ -1,12 +1,6 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+// import { NewAppScreen } from '@react-native/new-app-screen';
+import { StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { withStallion } from 'react-native-stallion';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -14,7 +8,8 @@ function App() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NewAppScreen templateFileName="App.tsx" />
+      <Text>Hello</Text>
+      {/* <NewAppScreen templateFileName="App.tsx" /> */}
     </View>
   );
 }
@@ -22,7 +17,11 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "yellow",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
-export default App;
+export default withStallion(App)
+
