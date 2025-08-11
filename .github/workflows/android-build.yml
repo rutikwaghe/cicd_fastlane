@@ -1,0 +1,81 @@
+name: Build Android App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js (React Native requires Node)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.1
+
+      # 3. Setup Java (Android requires Java)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # 4. Setup Android SDK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # 5. Install dependencies
+      - name: Install dependencies
+        run: yarn install
+
+      # 6. Decode and save keystore
+      - name: Decode and save keystore
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/my-release-key.jks
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      # 7. Set Gradle signing properties
+      - name: Set up Gradle signing properties
+        run: |
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      # 8. Build Android APK
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew clean
+          ./gradlew assembleRelease
+
+      # 9. Build Android AAB
+      - name: Build Android AAB
+        run: |
+          cd android
+          ./gradlew bundleRelease
+
+      # 10. Upload APK artifact
+      - name: Upload APK Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-release
+          path: android/app/build/outputs/apk/release/*.apk
+
+      # 11. Upload AAB artifact
+      - name: Upload AAB Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: aab-release
+          path: android/app/build/outputs/bundle/release/*.aab
