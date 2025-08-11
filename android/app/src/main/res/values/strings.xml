@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">TestApp</string>
-    <string name="StallionProjectId">6899bcdff0de5106a2e8a6f0</string>
-    <string name="StallionAppToken">spb_lq36HpfUICDkiQ1sRycmwdPjOxPYVogb7QbFxThH5b</string>
+    <!-- <string name="StallionProjectId">6899bcdff0de5106a2e8a6f0</string>
+    <string name="StallionAppToken">spb_lq36HpfUICDkiQ1sRycmwdPjOxPYVogb7QbFxThH5b</string> -->
 </resources>
