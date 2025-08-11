@@ -59,7 +59,7 @@ jobs:
 
       - name: Inject signing info into gradle.properties
         run: |
-          echo "MYAPP_UPLOAD_STORE_FILE=ipruatom.keystore" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_STORE_FILE=groceryapp_keystore.jks" >> android/gradle.properties
           echo "MYAPP_UPLOAD_KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> android/gradle.properties
           echo "MYAPP_UPLOAD_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> android/gradle.properties
           echo "MYAPP_UPLOAD_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> android/gradle.properties
