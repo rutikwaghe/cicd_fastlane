@@ -39,19 +39,6 @@ jobs:
         run: yarn install
 
       # 6. Decode and save keystore
-      # - name: Decode and save keystore
-      #   run: |
-      #     echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/groceryapp_keystore.jks
-      #   env:
-      #     ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-
-      # # 7. Set Gradle signing properties
-      # - name: Set up Gradle signing properties
-      #   run: |
-      #     echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-      #     echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
-      #     echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
-
       - name: Decode keystore from base64
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/groceryapp_keystore.jks
@@ -92,7 +79,22 @@ jobs:
           path:
             android/app/build/outputs/bundle/release/*.aab
 
-            # 12. Bundle JS for OTA update
+ # ===== Add Stallion OTA upload step =====
+
+      - name: Install Stallion CLI
+        run: |
+          npm install -g @stallion/cli
+
+      - name: Publish release to Stallion OTA
+        env:
+          STALLION_API_TOKEN: ${{ secrets.STALLION_API_TOKEN }}
+        run: |
+          # Upload AAB bundle - change path or platform as needed
+          stallion publish-bundle --upload-path=mbstyx/cicd_fastlane/secondtry --platform=android --release-note="GitHub Actions Release $GITHUB_RUN_NUMBER" android/app/build/outputs/bundle/release/app-release.aab
+
+
+
+      # 12. Bundle JS for OTA update
       # - name: Bundle JS for Stallion OTA
       #   run: |
       #     npx react-native bundle \

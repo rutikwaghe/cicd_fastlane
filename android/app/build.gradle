@@ -82,8 +82,8 @@ android {
         applicationId "com.testapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "4.0"
+        versionCode 1
+        versionName "1.0"
     }
     signingConfigs {
         release {
@@ -111,6 +111,9 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+
+
 }
 
 dependencies {
