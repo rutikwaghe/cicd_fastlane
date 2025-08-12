@@ -84,7 +84,8 @@ jobs:
         run: |
           yarn add react-native-stallion
           yarn global add stallion-cli
-          yarn global add @stallion/cli
+          yarn add -D stallion-cli
+
 
       - name: Publish release to Stallion OTA
         env:
