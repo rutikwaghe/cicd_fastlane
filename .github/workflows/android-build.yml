@@ -83,7 +83,7 @@ jobs:
 
       - name: Install Stallion CLI
         run: |
-          npm install -g @stallion/cli
+          npm install --save-dev stallion-cli
 
       - name: Publish release to Stallion OTA
         env:
