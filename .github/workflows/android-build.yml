@@ -81,7 +81,10 @@ jobs:
       # ===== Add Stallion OTA upload step =====
 
       - name: Install Stallion CLI
-        run: npm install -g @stallion/cli
+        run: |
+          yarn add react-native-stallion
+          yarn global add stallion-cli
+          yarn global add @stallion/cli
 
       - name: Publish release to Stallion OTA
         env:
