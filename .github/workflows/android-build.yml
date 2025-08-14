@@ -110,4 +110,4 @@ jobs:
         run: |
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > android/fastlane/playstore-credentials.json
           cd android
-          fastlane playstore
+          fastlane deploy

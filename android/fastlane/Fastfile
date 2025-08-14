@@ -42,27 +42,25 @@ default_platform(:android)
 
 platform :android do
   desc "Build and upload Android App Bundle to Google Play Internal Testing"
-  lane :deploy do
-    # 1️⃣ Clean the build to avoid leftover APKs
+  lane :playstore do
     gradle(
       task: "clean"
     )
 
-    # 2️⃣ Build only the AAB
     gradle(
       task: "bundle",
       build_type: "Release"
     )
 
-    # 3️⃣ Upload only the AAB to Google Play (skip APK uploads)
     upload_to_play_store(
-      track: "internal",           # Change to 'production', 'beta', etc.
-      release_status: "draft",     # or 'completed'
-      skip_upload_apk: true,       # Prevent uploading any APKs
+      track: "internal",
+      release_status: "draft",
+      skip_upload_apk: true,
       skip_upload_metadata: false,
       skip_upload_images: false,
       skip_upload_screenshots: false
     )
   end
 end
+
 
