@@ -1,113 +1,157 @@
-name: Build Android App
+name: Deploy to Play Store
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      # 1. Checkout the code
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2. Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.13.1
-
-      # 3. Setup Java
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      # 4. Setup Android SDK
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      # 5. Install dependencies
-      - name: Install dependencies
-        run: yarn install
-
-      # 6. Decode and save keystore
-      - name: Decode keystore from base64
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/groceryapp_keystore.jks
-
-      - name: Inject signing info into gradle.properties
-        run: |
-          echo "MYAPP_UPLOAD_STORE_FILE=groceryapp_keystore.jks" >> android/gradle.properties
-          echo "MYAPP_UPLOAD_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
-          echo "MYAPP_UPLOAD_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
-          echo "MYAPP_UPLOAD_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
-
-      # 8. Build APK
-      - name: Build Android APK
-        run: |
-          cd android
-          chmod +x ./gradlew
-          ./gradlew clean
-          ./gradlew assembleRelease
-
-      # 9. Build AAB
-      - name: Build Android AAB
-        run: |
-          cd android
-          ./gradlew bundleRelease
-
-      # 10. Upload APK artifact
-      - name: Upload APK Release
-        uses: actions/upload-artifact@v4
-        with:
-          name: apk-release
-          path: android/app/build/outputs/apk/release/*.apk
-
-      # 11. Upload AAB artifact
-      - name: Upload AAB Release
-        uses: actions/upload-artifact@v4
-        with:
-          name: aab-release
-          path: android/app/build/outputs/bundle/release/*.aab
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.13.1
-
-      - name: Setup Java
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'zulu'
+          java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install dependencies
-        run: yarn install
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
 
       - name: Install Fastlane
-        run: sudo gem install fastlane -NV
+        run: |
+          cd android
+          bundle install
 
-      - name: Deploy to Google Play Store
+      - name: Create Google Play credentials file
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > android/fastlane/playstore-credentials.json
+
+      - name: Build & Deploy to Play Store
+        run: |
           cd android
-          fastlane deploy
+          bundle exec fastlane playstore
+
+# name: Build Android App
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       # 1. Checkout the code
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       # 2. Setup Node.js
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 22.13.1
+
+#       # 3. Setup Java
+#       - name: Setup Java
+#         uses: actions/setup-java@v4
+#         with:
+#           distribution: temurin
+#           java-version: 17
+
+#       # 4. Setup Android SDK
+#       - name: Setup Android SDK
+#         uses: android-actions/setup-android@v3
+
+#       # 5. Install dependencies
+#       - name: Install dependencies
+#         run: yarn install
+
+#       # 6. Decode and save keystore
+#       - name: Decode keystore from base64
+#         run: |
+#           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/groceryapp_keystore.jks
+
+#       - name: Inject signing info into gradle.properties
+#         run: |
+#           echo "MYAPP_UPLOAD_STORE_FILE=groceryapp_keystore.jks" >> android/gradle.properties
+#           echo "MYAPP_UPLOAD_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
+#           echo "MYAPP_UPLOAD_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
+#           echo "MYAPP_UPLOAD_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
+
+#       # 8. Build APK
+#       - name: Build Android APK
+#         run: |
+#           cd android
+#           chmod +x ./gradlew
+#           ./gradlew clean
+#           ./gradlew assembleRelease
+
+#       # 9. Build AAB
+#       - name: Build Android AAB
+#         run: |
+#           cd android
+#           ./gradlew bundleRelease
+
+#       # 10. Upload APK artifact
+#       - name: Upload APK Release
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: apk-release
+#           path: android/app/build/outputs/apk/release/*.apk
+
+#       # 11. Upload AAB artifact
+#       - name: Upload AAB Release
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: aab-release
+#           path: android/app/build/outputs/bundle/release/*.aab
+
+#   deploy:
+#     runs-on: ubuntu-latest
+#     needs: build
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 22.13.1
+
+#       - name: Setup Java
+#         uses: actions/setup-java@v4
+#         with:
+#           distribution: temurin
+#           java-version: 17
+
+#       - name: Setup Android SDK
+#         uses: android-actions/setup-android@v3
+
+#       - name: Install dependencies
+#         run: yarn install
+
+#       - name: Install Fastlane
+#         run: sudo gem install fastlane -NV
+
+#       - name: Deploy to Google Play Store
+#         env:
+#           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+#         run: |
+#           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > android/fastlane/playstore-credentials.json
+#           cd android
+#           fastlane deploy
