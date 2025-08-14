@@ -1,40 +1,103 @@
-name: Deploy to Play Store
+name: Build & Upload Android App
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch: # Manual trigger
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
+      # 1. Checkout the code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.1
+
+      # 3. Setup Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
-      - name: Install Fastlane
+      # 4. Setup Android SDK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # 5. Install dependencies
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # 6. Decode and save keystore
+      - name: Decode keystore from base64
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/groceryapp_keystore.jks
+
+      # 7. Inject signing info into gradle.properties
+      - name: Inject signing info into gradle.properties
+        run: |
+          echo "MYAPP_UPLOAD_STORE_FILE=groceryapp_keystore.jks" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/gradle.properties
+          echo "MYAPP_UPLOAD_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/gradle.properties
+
+      # 8. Build AAB
+      - name: Build Android AAB
         run: |
           cd android
-          bundle install
+          chmod +x ./gradlew
+          ./gradlew clean bundleRelease
 
-      - name: Create Google Play credentials file
+      # 9. Upload AAB artifact
+      - name: Upload AAB Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: aab-release
+          path: android/app/build/outputs/bundle/release/*.aab
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Download AAB from previous job
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: aab-release
+          path: ./release
+
+      # Install Fastlane
+      - name: Install Fastlane
+        run: sudo gem install fastlane -NV
+
+      # Deploy to Google Play Store
+      - name: Deploy to Google Play
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
+          mkdir -p android/fastlane
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > android/fastlane/playstore-credentials.json
-
-      - name: Build & Deploy to Play Store
-        run: |
           cd android
-          bundle exec fastlane playstore
+          fastlane supply --aab ../release/*.aab \
+                          --track internal \
+                          --json_key playstore-credentials.json \
+                          --package_name com.cicdpipe
+
+
+
+
+
+
 
 # name: Build Android App
 
