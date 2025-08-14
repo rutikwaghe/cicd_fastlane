@@ -6,7 +6,7 @@ function App() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <Text style={{ color: "#000" }}>Hello world</Text>
+      <Text style={{ color: "#000" }}>Hello world!</Text>
     </View>
   );
 }
