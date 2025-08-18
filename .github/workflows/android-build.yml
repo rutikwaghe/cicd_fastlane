@@ -86,15 +86,14 @@ jobs:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
           mkdir -p android/fastlane
-          # Write JSON properly (avoid echo collapsing newlines)
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" | jq '.' > android/fastlane/playstore-credentials.json
-
           cd android
-          bundle exec fastlane supply \
+          fastlane supply \
             --aab ../release/*.aab \
             --track internal \
             --json_key fastlane/playstore-credentials.json \
             --package_name com.cicdpipe
+
 
 # name: Build Android App
 
