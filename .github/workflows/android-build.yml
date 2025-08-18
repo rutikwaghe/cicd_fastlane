@@ -92,8 +92,21 @@ jobs:
             --aab ../release/*.aab \
             --track internal \
             --json_key fastlane/playstore-credentials.json \
-            --package_name com.cicdpipe
+            --package_name com.cicdpipe \
+            --release_status draft
 
+      # - name: Deploy to Google Play
+      #   env:
+      #     GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+      #   run: |
+      #     mkdir -p android/fastlane
+      #     echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" | jq '.' > android/fastlane/playstore-credentials.json
+      #     cd android
+      #     fastlane supply \
+      #       --aab ../release/*.aab \
+      #       --track internal \
+      #       --json_key fastlane/playstore-credentials.json \
+      #       --package_name com.cicdpipe
 
 # name: Build Android App
 
